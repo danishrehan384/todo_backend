@@ -8,7 +8,7 @@ import {
 import { CreateUserDto, UpdateUserDto } from './dto/create-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -46,10 +46,12 @@ export class UsersService {
     }
   }
 
-  async update(id: number, body: UpdateUserDto) {
+  async update(id: number, body: Partial<UpdateUserDto>) {
     try {
       const { email, firstname, lastname, password } = body;
-      const isUserExist = await this.userRepo.findOne({ where: { id } });
+      const isUserExist = await this.userRepo.findOne({
+        where: { id: id, deleted_at: IsNull() },
+      });
       if (!isUserExist)
         throw new BadRequestException(
           'User not found or may be deleted earlier',
@@ -63,17 +65,24 @@ export class UsersService {
       if (isEmailAlreadyExist)
         throw new ConflictException('This email is already registerd');
 
-      const salt = await bcrypt.genSalt(10);
-      const hash = await bcrypt.hash(password, salt);
-
-      const payload: User | any = {
-        firstname: firstname,
-        email: email,
-        lastname: lastname,
-        password: hash,
-      };
-
-      await this.userRepo.update(id, payload);
+      if (password) {
+        const salt = await bcrypt.genSalt(10);
+        const hash = await bcrypt.hash(password, salt);
+        const payload: User | any = {
+          firstname: firstname,
+          email: email,
+          lastname: lastname,
+          password: hash,
+        };
+        await this.userRepo.update(id, payload);
+      } else {
+        const payload: User | any = {
+          firstname: firstname,
+          email: email,
+          lastname: lastname,
+        };
+        await this.userRepo.update(id, payload);
+      }
 
       return {
         status: 200,
@@ -86,14 +95,33 @@ export class UsersService {
 
   async remove(id: number) {
     try {
+      const isUserExist = await this.userRepo
+        .createQueryBuilder('User')
+        .where('deleted_at IS NULL AND id = :id', { id })
+        .getOne();
 
-      await this.userRepo.delete(id);
+      if (!isUserExist) throw new BadRequestException('User not found');
+
+      const deleteUser = await this.userRepo
+        .createQueryBuilder('User')
+        .update()
+        .set({
+          deleted_at: new Date(),
+        })
+        .where('id = :id', { id })
+        .execute();
+
+      if (deleteUser.affected) {
+        return {
+          status: 200,
+          message: 'Deleted successfully',
+        };
+      }
 
       return {
-        status: 200,
-        message: 'Deleted successfully',
+        status: 400,
+        message: 'Something went wrong',
       };
-      
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }

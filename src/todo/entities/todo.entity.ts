@@ -1,15 +1,15 @@
-import { Todo } from 'src/todo/entities/todo.entity';
+import { User } from 'src/users/entities/user.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
-  OneToMany,
+  ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
 @Entity()
-export class User {
+export class Todo {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -18,28 +18,19 @@ export class User {
     nullable: false,
     default: '',
   })
-  firstname: string;
+  title: string;
 
   @Column({
     unique: false,
     nullable: false,
     default: '',
   })
-  lastname: string;
+  description: string;
 
   @Column({
-    unique: true,
-    nullable: false,
-    default: '',
+    type: Boolean,
   })
-  email: string;
-
-  @Column({
-    unique: false,
-    nullable: false,
-    default: '',
-  })
-  password: string;
+  completed: boolean;
 
   @CreateDateColumn({
     type: 'datetime',
@@ -57,6 +48,6 @@ export class User {
   })
   deleted_at: Date;
 
-  @OneToMany(() => Todo, (todo) => todo.user)
-  todos: Todo[];
+  @ManyToOne(() => User, (user) => user.todos)
+  user: User;
 }

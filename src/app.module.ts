@@ -7,12 +7,13 @@ import { UsersModule } from './users/users.module';
 import { User } from './users/entities/user.entity';
 import { TodoModule } from './todo/todo.module';
 import { Todo } from './todo/entities/todo.entity';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       envFilePath: '.env',
-      isGlobal: true
+      isGlobal: true,
     }),
     TypeOrmModule.forRoot({
       type: 'mysql',
@@ -23,12 +24,13 @@ import { Todo } from './todo/entities/todo.entity';
       database: process.env.DATABASE_NAME,
       entities: [User, Todo],
       synchronize: process.env.DATABASE_SYNC == 'YES' ? true : false,
-      logging: process.env.DATABASE_LOGGING == "YES" ? true : false,
+      logging: process.env.DATABASE_LOGGING == 'YES' ? true : false,
     }),
     UsersModule,
-    TodoModule
+    TodoModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule { }
+export class AppModule {}

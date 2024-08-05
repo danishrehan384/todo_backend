@@ -10,6 +10,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { IsNull, Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
+import { UserRole } from 'utils/roles.enum';
 
 @Injectable()
 export class UsersService {
@@ -121,6 +122,92 @@ export class UsersService {
       return {
         status: 400,
         message: 'Something went wrong',
+      };
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  async getAllUser() {
+    try {
+      return this.userRepo.find({
+        select: {
+          id: true,
+          firstname: true,
+          lastname: true,
+          email: true,
+          role: true,
+          created_at: true,
+          updated_at: true,
+          deleted_at: true,
+        },
+        relations: {
+          todos: true,
+        },
+      });
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  async createAdmin(body: CreateUserDto) {
+    try {
+      const { email, firstname, lastname, password } = body;
+
+      const isAdminAlreadyExist = await this.userRepo.findOne({
+        where: {
+          email: email,
+        },
+      });
+      if (isAdminAlreadyExist)
+        throw new BadRequestException('This Email is already exist');
+
+      const salt = await bcrypt.genSalt(10);
+      const hash = await bcrypt.hash(password, salt);
+
+      const payload: User | any = {
+        firstname: firstname,
+        lastname: lastname,
+        email: email,
+        password: hash,
+        role: UserRole.ADMIN,
+      };
+
+      const createAdmin = this.userRepo.create(payload);
+      await this.userRepo.save(createAdmin);
+
+      return {
+        status: 200,
+        message: 'Admin is created Successfully',
+      };
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  async deleteUser(userid: number) {
+    try {
+      const isUserExist = await this.userRepo.findOne({
+        where: {
+          id: userid,
+          deleted_at: IsNull(),
+        },
+      });
+
+      if (!isUserExist) throw new BadRequestException('User not found');
+
+      await this.userRepo
+        .createQueryBuilder('user')
+        .update()
+        .set({
+          deleted_at: new Date(),
+        })
+        .where('id = :userid', { userid })
+        .execute();
+
+      return {
+        status: 200,
+        message: 'User Deleted Successfully',
       };
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);

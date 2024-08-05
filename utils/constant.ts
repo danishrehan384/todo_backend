@@ -1,3 +1,8 @@
 export const CONSTANTS = {
-  BY_PASS_URL: ['/auth/login', '/users/signup'],
+  ROLE: {
+    ADMIN: 'Admin',
+    USER: 'Normal User',
+  },
+
+  BY_PASS_URL: ['/auth/login', '/users/signup', '/auth/signup'],
 };

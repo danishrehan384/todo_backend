@@ -32,7 +32,7 @@ export class AdminController {
   }
 
   @ApiSecurity('JWT-auth')
-  @Delete('user/delete/id')
+  @Delete('user/delete/:id')
   @UseGuards(new RoleGuard(UserRole.ADMIN))
   deleteUser(@Param('id', ParseIntPipe) id: number) {
     return this.userService.deleteUser(id);

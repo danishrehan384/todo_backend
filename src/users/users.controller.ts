@@ -7,7 +7,7 @@ import {
   Param,
   Delete,
   ParseIntPipe,
-  UseGuards,
+  Request
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto, UpdateUserDto } from './dto/create-user.dto';
@@ -26,17 +26,19 @@ export class UsersController {
   }
 
   @ApiSecurity('JWT-auth')
-  @Patch(':id')
+  @Patch()
   update(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() updateUserDto: Partial<UpdateUserDto>,
+    @Request() req,
+    @Body() updateUserDto: UpdateUserDto,
   ) {
-    return this.usersService.update(id, updateUserDto);
+    const userId = req.user.id;
+    return this.usersService.update(userId, updateUserDto);
   }
 
   @ApiSecurity('JWT-auth')
-  @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: number) {
-    return this.usersService.remove(id);
+  @Delete()
+  remove(@Request() req) {
+    const userId = req.user.id;
+    return this.usersService.remove(userId);
   }
 }

@@ -4,6 +4,7 @@ import {
   HttpException,
   HttpStatus,
   Injectable,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { CreateUserDto, UpdateUserDto } from './dto/create-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -57,6 +58,8 @@ export class UsersService {
         throw new BadRequestException(
           'User not found or may be deleted earlier',
         );
+      
+      if(isUserExist.role == 'admin') throw new UnauthorizedException;  
 
       const isEmailAlreadyExist = await this.userRepo
         .createQueryBuilder()
@@ -102,6 +105,8 @@ export class UsersService {
         .getOne();
 
       if (!isUserExist) throw new BadRequestException('User not found');
+
+      if(isUserExist.role == 'admin') throw new UnauthorizedException;
 
       const deleteUser = await this.userRepo
         .createQueryBuilder('User')

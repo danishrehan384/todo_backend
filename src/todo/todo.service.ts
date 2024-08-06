@@ -49,23 +49,11 @@ export class TodoService {
   findUncompleted(userId: number) {
     try {
       return this.todoRepo.find({
-        relations: {
-          user: true,
-        },
         where: {
           completed: false,
           deleted_at: IsNull(),
           user: {
             id: userId,
-          },
-        },
-        select: {
-          title: true,
-          description: true,
-          completed: true,
-          created_at: true,
-          user: {
-            id: true,
           },
         },
       });
@@ -77,23 +65,11 @@ export class TodoService {
   findcompleted(userId: number) {
     try {
       return this.todoRepo.find({
-        relations: {
-          user: true,
-        },
         where: {
           completed: true,
           deleted_at: IsNull(),
           user: {
             id: userId,
-          },
-        },
-        select: {
-          title: true,
-          description: true,
-          completed: true,
-          created_at: true,
-          user: {
-            id: true,
           },
         },
       });
@@ -145,6 +121,8 @@ export class TodoService {
           },
         },
       });
+
+      console.log(userId)
 
       if (!findTodo) throw new BadRequestException();
 

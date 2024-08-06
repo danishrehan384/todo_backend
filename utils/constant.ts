@@ -4,5 +4,10 @@ export const CONSTANTS = {
     USER: 'Normal User',
   },
 
-  BY_PASS_URL: ['/api/v1/auth/login', '/api/v1/users/signup', '/api/v1/auth/signup','/api/v1'],
+  BY_PASS_URL: [
+    '/api/v1/auth/login',
+    '/api/v1/users/signup',
+    '/api/v1/admin/signup',
+    '/api/v1',
+  ],
 };

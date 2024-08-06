@@ -1,27 +1,13 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Param,
-  ParseIntPipe,
-  Post,
-  Request,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Post, Request, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { LoginDto } from './dto/login.dto';
 import { JwtService } from '@nestjs/jwt';
-import { CreateUserDto } from 'src/users/dto/create-user.dto';
-import { UsersService } from 'src/users/users.service';
-import { RoleGuard } from './Guards/role.guard';
-import { UserRole } from 'utils/roles.enum';
+import { ApiTags } from '@nestjs/swagger';
 
 @Controller('auth')
+@ApiTags('Login')
 export class AuthController {
-  constructor(
-    private jwt: JwtService,
-    private readonly userService: UsersService,
-  ) {}
+  constructor(private jwt: JwtService) {}
 
   @Post('/login')
   @UseGuards(AuthGuard('local'))
@@ -29,15 +15,5 @@ export class AuthController {
     return {
       token: this.jwt.sign(req.user),
     };
-  }
-
-  @Post('/signup')
-  createAdmin(@Body() createUserDto: CreateUserDto) {
-    return this.userService.createAdmin(createUserDto);
-  }
-
-  @Delete('user/delete/id')
-  deleteUser(@Param('id', ParseIntPipe) id: number) {
-    return this.userService.deleteUser(id);
   }
 }
